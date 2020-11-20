@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+
 #include "blur_utils.h"
 
 #define MAX_LEN  255
