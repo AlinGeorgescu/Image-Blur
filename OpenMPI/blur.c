@@ -28,19 +28,34 @@ int main(int argc, char *argv[]) {
     int master_fragment;
     uint8_t type, channels, maxval;
     uint8_t **image;
-    char *image_in = argv[1];
-    char *image_out = argv[2];
+    char *image_in;
+    char *image_out;
+    int num_filters;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    if (argc < 3) {
+    if (argc < 4) {
         if (rank == MASTER) {
-            fprintf(stderr, "Eroare! Numar de argumente invalid!\n");
+            fprintf(stderr, "Eroare!\nMod utilizare: mpirun -np <num_procs> "
+                            "./blur <in.format> <out.format> <num_applied>\n");
         }
         MPI_Finalize();
         return 0;
+    } else {
+        image_in = argv[1];
+        image_out = argv[2];
+        num_filters = atoi(argv[3]);
+
+        if (num_filters <= 0) {
+            if (rank == MASTER) {
+                fprintf(stderr, "Eroare!\n<num_applied> trebuie sa fie strict "
+                                "pozitiv\n");
+            }
+            MPI_Finalize();
+            return 0;
+        }
     }
 
     if (rank == MASTER) {
@@ -72,9 +87,10 @@ int main(int argc, char *argv[]) {
 
         // Prelucrarea bucății de imagine arondată procesului MASTER.
         master_fragment = ceil((double) height / numtasks);
-        for (i = 3; i < argc; ++i) {
+        for (i = 0; i < num_filters; ++i) {
             apply_filter(master_fragment, width, channels, maxval, image);
-            if (i != argc - 1 && numtasks > 1) {
+
+            if ( (i != num_filters - 1) && (numtasks > 1) ) {
                 MPI_Recv(
                     image[master_fragment + 1],
                     channels * (width + 2),
@@ -83,6 +99,7 @@ int main(int argc, char *argv[]) {
                     MPI_ANY_TAG,
                     MPI_COMM_WORLD,
                     MPI_STATUS_IGNORE);
+
                 MPI_Send(
                     image[master_fragment],
                     channels * (width + 2),
@@ -141,10 +158,10 @@ int main(int argc, char *argv[]) {
         }
 
         // Prelucrarea bucății de imagine arondata procesului curent.
-        for (i = 3; i < argc; ++i) {
+        for (i = 0; i < num_filters; ++i) {
             apply_filter(height, width, channels, maxval, image);
 
-            if (i != argc - 1) {
+            if (i != num_filters - 1) {
                 if (rank & 1) {
                     MPI_Send(
                         image[1],
@@ -153,6 +170,7 @@ int main(int argc, char *argv[]) {
                         rank - 1,
                         SOME_TAG,
                         MPI_COMM_WORLD);
+
                     if (rank != numtasks - 1) {
                         MPI_Send(
                             image[height],
@@ -189,6 +207,7 @@ int main(int argc, char *argv[]) {
                         MPI_ANY_TAG,
                         MPI_COMM_WORLD,
                         MPI_STATUS_IGNORE);
+
                     if (rank != numtasks - 1) {
                         MPI_Recv(
                             image[height + 1],

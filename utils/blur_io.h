@@ -90,7 +90,7 @@ void print_image(char *image_out,
     out = fopen(image_out, "wb");
     check_file(out);
 
-    fprintf(out, "P%u\n", *type);
+    fprintf(out, "P%u\n# Created by me\n", *type);
     fprintf(out, "%d %d\n", *width, *height);
     fprintf(out, "%d\n", *maxval);
 

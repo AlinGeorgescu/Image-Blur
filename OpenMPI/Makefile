@@ -9,7 +9,7 @@
 CC = mpicc
 
 # Flaguri compilator
-CFLAGS = -Wall -Wextra -Wno-unused-parameter -std=c99
+CFLAGS = -Wall -Wextra -std=c99
 
 # Biblioteci externe
 LIBS=-lm
