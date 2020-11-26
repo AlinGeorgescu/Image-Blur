@@ -54,23 +54,21 @@ void apply_filter_pthreads(int height, int width, uint8_t channels, uint8_t maxv
     pthread_barrier_wait(&barrier);
 
     // Aplicarea filtrului propriu-zis (a convoluției)
-    for (int t = 0; t < NUM_FILTERS; t++) {
-        for (i = 1; i < height - 1; ++i) {
-            for (j = channels; j < channels * (width + 1); ++j) {
-                pixel = GAUSSIAN[2][2] * aux[i - 1][j - channels] +
-                        GAUSSIAN[2][1] * aux[i - 1][j]            +
-                        GAUSSIAN[2][0] * aux[i - 1][j + channels] +
-                        GAUSSIAN[1][2] * aux[i][j - channels]     +
-                        GAUSSIAN[1][1] * aux[i][j]                +
-                        GAUSSIAN[1][0] * aux[i][j + channels]     +
-                        GAUSSIAN[0][2] * aux[i + 1][j - channels] +
-                        GAUSSIAN[0][1] * aux[i + 1][j]            +
-                        GAUSSIAN[0][0] * aux[i + 1][j + channels];
-                pixel = MIN(maxval, pixel);
-                pixel = MAX(0, pixel);
+    for (i = 1; i < height - 1; ++i) {
+        for (j = channels; j < channels * (width + 1); ++j) {
+            pixel = GAUSSIAN[2][2] * aux[i - 1][j - channels] +
+                    GAUSSIAN[2][1] * aux[i - 1][j]            +
+                    GAUSSIAN[2][0] * aux[i - 1][j + channels] +
+                    GAUSSIAN[1][2] * aux[i][j - channels]     +
+                    GAUSSIAN[1][1] * aux[i][j]                +
+                    GAUSSIAN[1][0] * aux[i][j + channels]     +
+                    GAUSSIAN[0][2] * aux[i + 1][j - channels] +
+                    GAUSSIAN[0][1] * aux[i + 1][j]            +
+                    GAUSSIAN[0][0] * aux[i + 1][j + channels];
+            pixel = MIN(maxval, pixel);
+            pixel = MAX(0, pixel);
 
-                image[start + i][j] = pixel;
-            }
+            image[start + i][j] = pixel;
         }
     }
 
@@ -100,7 +98,12 @@ void *thread_task(void *arg)
 
     img.height = end - start;
 
-    apply_filter_pthreads(img.height, img.width, img.channels, img.maxval, start, end, img.image);
+    for (int t = 0; t < NUM_FILTERS; t++) {
+        // make sure that all threads had finished the job for the previous filter
+        // before going to the next one
+        pthread_barrier_wait(&barrier);
+        apply_filter_pthreads(img.height, img.width, img.channels, img.maxval, start, end, img.image);
+    }
 
     pthread_exit(NULL);
 }
