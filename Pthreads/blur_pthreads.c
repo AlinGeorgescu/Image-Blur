@@ -3,11 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-
 #include <pthread.h>
+
 #include "../utils/blur_utils.h"
 #include "../utils/blur_io.h"
-
 
 pthread_barrier_t barrier;
 
@@ -23,24 +22,19 @@ struct image {
     int num_tasks;
 };
 
-int minim(int a, int b) {
-	if (a < b) {
-		return a;
-	}
-	return b;
-}
-
-void apply_filter_pthreads(int height, int width, uint8_t channels, uint8_t maxval, int start, int end,
-                            uint8_t **image) {
+void apply_filter_pthreads(int height, int width, uint8_t channels,
+                           uint8_t maxval, int start, int end,
+                           uint8_t **image) {
     int i, j;
     float pixel;
     uint8_t **aux;
 
-     // se aloca emorie locala pentru a evita race conditions pe liniile de pixeli comune
-    
+    // se aloca emorie locala pentru a evita race conditions pe liniile de
+    // pixeli comune
+
     aux = (uint8_t **) malloc((height) * sizeof(uint8_t *));
     check_container(aux, NULL);
-    
+
     int k = 0;
     for (i = start; i < end; ++i) {
         aux[k] = (uint8_t *) malloc(channels * (width + 2) * sizeof(uint8_t));
@@ -49,8 +43,9 @@ void apply_filter_pthreads(int height, int width, uint8_t channels, uint8_t maxv
         k++;
     }
 
-    // se asteapta pana termina toate thread-urile de copiat memoria in local memory,
-    // pentru a evita situatia cand un thread ar copia pixeli cu filtru deja aplicat
+    // se asteapta pana termina toate thread-urile de copiat memoria in local
+    // memory, pentru a evita situatia cand un thread ar copia pixeli cu filtru
+    // deja aplicat
     pthread_barrier_wait(&barrier);
 
     // Aplicarea filtrului propriu-zis (a convoluției)
@@ -84,14 +79,15 @@ void *thread_task(void *arg)
     int start, end;
 
     start = img.id * ceil((double) img.height / img.num_tasks);
-    end = minim(img.height, (img.id + 1) * ceil((double) img.height / img.num_tasks));
+    end = MIN(img.height,
+              (img.id + 1) * ceil((double) img.height / img.num_tasks));
 
     if (img.id > 0) {
         start--;
     }
 
     end++;
-    
+
     if (img.id == img.num_tasks - 1) {
         end++;
     }
@@ -99,10 +95,11 @@ void *thread_task(void *arg)
     img.height = end - start;
 
     for (int t = 0; t < NUM_FILTERS; t++) {
-        // make sure that all threads had finished the job for the previous filter
-        // before going to the next one
+        // make sure that all threads had finished the job for the previous
+        // filter before going to the next one
         pthread_barrier_wait(&barrier);
-        apply_filter_pthreads(img.height, img.width, img.channels, img.maxval, start, end, img.image);
+        apply_filter_pthreads(img.height, img.width, img.channels, img.maxval,
+                              start, end, img.image);
     }
 
     pthread_exit(NULL);
@@ -119,7 +116,8 @@ int main(int argc, char *argv[]) {
     NUM_FILTERS = atoi(argv[4]);
 
     if (argc < 5) {
-        fprintf(stderr, "Eroare! Numar de argumente invalid! Insereaza: in out num_threads num_blurs\n");
+        fprintf(stderr, "Eroare! Numar de argumente invalid! "
+                        "Insereaza: in out num_threads num_blurs\n");
         return 0;
     }
 
@@ -128,7 +126,7 @@ int main(int argc, char *argv[]) {
                 &maxval, &image);
 
     pthread_t threads[NUM_THREADS];
-    struct image img[NUM_THREADS]; 
+    struct image img[NUM_THREADS];
     int r;
     int id;
 
@@ -146,7 +144,7 @@ int main(int argc, char *argv[]) {
         img[id].num_tasks = NUM_THREADS;
 
         r = pthread_create(&threads[id], NULL, thread_task, (void *) &img[id]);
- 
+
         if (r) {
             printf("Eroare la crearea thread-ului %d\n", id);
             exit(-1);
@@ -157,7 +155,7 @@ int main(int argc, char *argv[]) {
     void *status;
      for (id = 0; id < NUM_THREADS; id++) {
         r = pthread_join(threads[id], &status);
- 
+
         if (r) {
             printf("Eroare la asteptarea thread-ului %d\n", id);
             exit(-1);

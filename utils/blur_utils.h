@@ -10,6 +10,9 @@
 #define BLUR_UTILS_H_
 
 #include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef MPI_VERSION
 #include "mpi.h"

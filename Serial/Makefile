@@ -6,7 +6,7 @@
 .PHONY: build run pack clean
 
 # Compilator
-CC = mpicc
+CC = gcc
 
 # Flaguri compilator
 CFLAGS = -Wall -Wextra -std=c99
@@ -26,7 +26,7 @@ build: $(SRC)
 
 # Regula de rulare
 run: build
-	mpirun -np $(TASKS) ./$(EXE) $(IN) $(OUT) $(FILTERS)
+	./$(EXE) $(IN) $(OUT) $(FILTERS)
 
 # Curatare director curent
 clean:
