@@ -166,5 +166,10 @@ int main(int argc, char *argv[]) {
     // Scrierea în fișier a imaginii.
     print_image(image_out, &type, &channels,
                 &width, &height, &maxval, image);
+    
 
+    for (int i = 0; i < (height) + 2; ++i) {
+            free(image[i]);
+    }
+    free(image);
 }
