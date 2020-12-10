@@ -15,7 +15,7 @@ CFLAGS = -Wall -Wextra -std=c99
 LIBS=-lm
 
 # Sursa
-SRC = blur.c
+SRC = blur_serial.c
 
 # Numele executabilului
 EXE = blur

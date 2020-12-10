@@ -16,6 +16,11 @@
 * *OpenMP*
 * *OpenMPI*
 
+### Cum se rulează:
+Se intră în folderul aferent variantei dorite și se dă:
+```
+make run IN=fișier_intrare OUT=fișier_ieșire FILTERS=numărul_de_filtre_de_aplicat.
+```
 ---
 
 ### Descriere
