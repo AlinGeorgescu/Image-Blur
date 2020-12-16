@@ -8,16 +8,7 @@
 #include "../utils/blur_utils.h"
 #include "../utils/blur_io.h"
 
-int minim(int a, int b) {
-
-	if (a < b) {
-		return a;
-	}
-	return b;
-}
-
 void apply_filter_mp(uint8_t **image, int height, int width, uint8_t maxval, uint8_t channels) {
-
     int i, j;
     float pixel;
     uint8_t **aux;
