@@ -15,15 +15,16 @@ void apply_filter_mp(uint8_t **image, int height, int width, uint8_t maxval, uin
     aux = (uint8_t **) malloc((height + 2) * sizeof(uint8_t *));
     check_container(aux, NULL);
 
-    #pragma omp for schedule(static, 4)
+    #pragma omp parallel for schedule(static, (height + 2) / omp_get_num_threads())
     for (i = 0; i < height + 2; ++i) {
         aux[i] = (uint8_t *) malloc(channels * (width + 2) * sizeof(uint8_t));
         check_container(aux[i], NULL);
         memcpy(aux[i], image[i], channels * (width + 2) * sizeof(uint8_t));
     }
 
-    #pragma omp for schedule(static, 4)
+    #pragma omp parallel default(shared) private(i, j, pixel)
     for (i = 1; i < height + 1; ++i) {
+        #pragma omp parallel for schedule(static, channels * width / omp_get_num_threads())
         for (j = channels; j < channels * (width + 1); ++j) {
             pixel = GAUSSIAN[2][2] * aux[i - 1][j - channels] +
                     GAUSSIAN[2][1] * aux[i - 1][j]            +
@@ -39,6 +40,8 @@ void apply_filter_mp(uint8_t **image, int height, int width, uint8_t maxval, uin
             image[i][j] = pixel;
         }
     }
+
+    #pragma omp parallel for schedule(static, (height + 2) / omp_get_num_threads())
     for (i = 0; i < height + 2; ++i) {
         free(aux[i]);
     }
