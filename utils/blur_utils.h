@@ -1,6 +1,7 @@
 /**
- * (C) Copyright 2020 - Proiect APP
- *                      Blurarea imaginilor
+ * (C) Copyright 2020 - 2021
+ * Proiect APP Blurarea imaginilor
+ *
  * Georgescu Alin-Andrei 342 C3
  * Iuga Florin-Eugen     342 C5
  * Negru Bogdan-Crisitan 342 C3
@@ -14,9 +15,17 @@
 #include <stdlib.h>
 #include <string.h>
 
+/**
+ * Pentru portabilitate, include bibliotecile de MPI sau OpenMP doar când este
+ * nevoie.
+ */
 #ifdef MPI_VERSION
 #include "mpi.h"
-#endif  // MPI_VERSION
+#endif // MPI_VERSION
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif // _OPENMP
 
 #define MIN(a, b)  (((a) < (b)) ? (a) : (b))
 #define MAX(a, b)  (((a) > (b)) ? (a) : (b))
@@ -39,7 +48,7 @@ void check_file(FILE *file) {
 
         #ifdef MPI_VERSION
         MPI_Finalize();
-        #endif  // MPI_VERSION
+        #endif // MPI_VERSION
 
         exit(-1);
     }
@@ -60,7 +69,7 @@ void check_container(void *ptr, FILE *file) {
 
         #ifdef MPI_VERSION
         MPI_Finalize();
-        #endif  // MPI_VERSION
+        #endif // MPI_VERSION
 
         exit(-1);
     }
@@ -84,6 +93,10 @@ void apply_filter(int height, int width, uint8_t channels, uint8_t maxval,
     aux = (uint8_t **) malloc((height + 2) * sizeof(uint8_t *));
     check_container(aux, NULL);
 
+    #if defined(_OPENMP)
+    #pragma omp parallel for \
+            schedule(static, (height + 2) / omp_get_num_threads())
+    #endif
     for (i = 0; i < height + 2; ++i) {
         aux[i] = (uint8_t *) malloc(channels * (width + 2) * sizeof(uint8_t));
         check_container(aux[i], NULL);
@@ -91,7 +104,14 @@ void apply_filter(int height, int width, uint8_t channels, uint8_t maxval,
     }
 
     // Aplicarea filtrului propriu-zis (a convoluției)
+    #if defined(_OPENMP)
+    #pragma omp parallel default(shared) private(i, j, pixel)
+    #endif
     for (i = 1; i < height + 1; ++i) {
+        #if defined(_OPENMP)
+        #pragma omp parallel for \
+                schedule(static, channels * width / omp_get_num_threads())
+        #endif
         for (j = channels; j < channels * (width + 1); ++j) {
             pixel = GAUSSIAN[2][2] * aux[i - 1][j - channels] +
                     GAUSSIAN[2][1] * aux[i - 1][j]            +
@@ -108,6 +128,10 @@ void apply_filter(int height, int width, uint8_t channels, uint8_t maxval,
         }
     }
 
+    #if defined(_OPENMP)
+    #pragma omp parallel for \
+            schedule(static, (height + 2) / omp_get_num_threads())
+    #endif
     for (i = 0; i < height + 2; ++i) {
         free(aux[i]);
     }

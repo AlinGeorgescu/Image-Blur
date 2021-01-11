@@ -1,6 +1,7 @@
 /**
- * (C) Copyright 2020 - Proiect APP
- *                      Blurarea imaginilor
+ * (C) Copyright 2020 - 2021
+ * Proiect APP Blurarea imaginilor
+ *
  * Georgescu Alin-Andrei 342 C3
  * Iuga Florin-Eugen     342 C5
  * Negru Bogdan-Crisitan 342 C3

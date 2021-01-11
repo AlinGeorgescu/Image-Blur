@@ -1,3 +1,12 @@
+/**
+ * (C) Copyright 2020 - 2021
+ * Proiect APP Blurarea imaginilor
+ *
+ * Georgescu Alin-Andrei 342 C3
+ * Iuga Florin-Eugen     342 C5
+ * Negru Bogdan-Crisitan 342 C3
+ */
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -11,7 +20,6 @@
 pthread_barrier_t barrier;
 
 int NUM_FILTERS = 1;
-int num_th = 0;
 
 struct image {
     uint8_t **image;
@@ -109,31 +117,45 @@ int main(int argc, char *argv[]) {
     int width, height;
     uint8_t type, channels, maxval;
     uint8_t **image;
-    char *image_in = argv[1];
-    char *image_out = argv[2];
-    int NUM_THREADS = atoi(argv[3]);
-    num_th = NUM_THREADS;
-    NUM_FILTERS = atoi(argv[4]);
+    char *image_in;
+    char *image_out;
+    int num_threads;
 
     if (argc < 5) {
-        fprintf(stderr, "Eroare! Numar de argumente invalid! "
-                        "Insereaza: in out num_threads num_blurs\n");
+        fprintf(stderr, "Eroare!\nMod utilizare: ./blur <in.format> "
+                        "<out.format> <num_applied> <num_threads>\n");
         return 0;
+    } else {
+        image_in = argv[1];
+        image_out = argv[2];
+        NUM_FILTERS = atoi(argv[3]);
+        num_threads = atoi(argv[4]);
+
+        if (NUM_FILTERS <= 0) {
+            fprintf(stderr, "Eroare!\n<num_applied> trebuie sa fie strict "
+                            "pozitiv\n");
+            return 0;
+        }
+
+        if (num_threads <= 0) {
+            fprintf(stderr, "Eroare!\n<num_threads> trebuie sa fie strict "
+                            "pozitiv\n");
+            return 0;
+        }
     }
 
     // Citirea imaginii de intrare din fișier.
     read_image(image_in, &type, &channels, &width, &height,
                 &maxval, &image);
 
-    pthread_t threads[NUM_THREADS];
-    struct image img[NUM_THREADS];
+    pthread_t threads[num_threads];
+    struct image img[num_threads];
     int r;
     int id;
 
+    pthread_barrier_init(&barrier, NULL, num_threads);
 
-    pthread_barrier_init(&barrier, NULL, NUM_THREADS);
-
-    for (id = 0; id < NUM_THREADS; id++) {
+    for (id = 0; id < num_threads; id++) {
         img[id].image = image;
         img[id].channels = channels;
         img[id].height = height;
@@ -141,7 +163,7 @@ int main(int argc, char *argv[]) {
         img[id].id = id;
         img[id].maxval = maxval;
         img[id].type = type;
-        img[id].num_tasks = NUM_THREADS;
+        img[id].num_tasks = num_threads;
 
         r = pthread_create(&threads[id], NULL, thread_task, (void *) &img[id]);
 
@@ -149,11 +171,10 @@ int main(int argc, char *argv[]) {
             printf("Eroare la crearea thread-ului %d\n", id);
             exit(-1);
         }
-
     }
 
     void *status;
-     for (id = 0; id < NUM_THREADS; id++) {
+     for (id = 0; id < num_threads; id++) {
         r = pthread_join(threads[id], &status);
 
         if (r) {
@@ -162,14 +183,13 @@ int main(int argc, char *argv[]) {
         }
     }
 
-
     // Scrierea în fișier a imaginii.
-    print_image(image_out, &type, &channels,
-                &width, &height, &maxval, image);
-    
+    print_image(image_out, &type, &channels, &width, &height, &maxval, image);
 
     for (int i = 0; i < (height) + 2; ++i) {
             free(image[i]);
     }
     free(image);
+
+    return 0;
 }

@@ -26,7 +26,7 @@ build: $(SRC)
 
 # Regula de rulare
 run: build
-	./$(EXE) $(IN) $(OUT) $(FILTERS)
+	OMP_NUM_THREADS=$(NUM_THREADS) ; ./$(EXE) $(IN) $(OUT) $(FILTERS)
 
 # Curatare director curent
 clean:

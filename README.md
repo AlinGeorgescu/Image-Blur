@@ -15,11 +15,12 @@
 * *Pthreads*
 * *OpenMP*
 * *OpenMPI*
+* implementare hibridă (*OpenMP* & *OpenMPI*)
 
 ### Cum se rulează:
-Se intră în folderul aferent variantei dorite și se dă:
+Se intră în folderul aferent variantei dorite și se execută:
 ```
-make run IN=fișier_intrare OUT=fișier_ieșire FILTERS=numărul_de_filtre_de_aplicat.
+make run IN=fișier_intrare OUT=fișier_ieșire FILTERS=nr_filtre_de_aplicat [NUM_TASKS=nr_taskuri_mpi] [NUM_THREADS=nr_threaduri]
 ```
 ---
 

@@ -1,73 +1,48 @@
+/**
+ * (C) Copyright 2020 - 2021
+ * Proiect APP Blurarea imaginilor
+ *
+ * Georgescu Alin-Andrei 342 C3
+ * Iuga Florin-Eugen     342 C5
+ * Negru Bogdan-Crisitan 342 C3
+ */
+
 #include <stdio.h>
 #include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <omp.h>
 
 #include "../utils/blur_utils.h"
 #include "../utils/blur_io.h"
 
-void apply_filter_mp(uint8_t **image, int height, int width, uint8_t maxval, uint8_t channels) {
-    int i, j;
-    float pixel;
-    uint8_t **aux;
-    aux = (uint8_t **) malloc((height + 2) * sizeof(uint8_t *));
-    check_container(aux, NULL);
-
-    #pragma omp parallel for schedule(static, (height + 2) / omp_get_num_threads())
-    for (i = 0; i < height + 2; ++i) {
-        aux[i] = (uint8_t *) malloc(channels * (width + 2) * sizeof(uint8_t));
-        check_container(aux[i], NULL);
-        memcpy(aux[i], image[i], channels * (width + 2) * sizeof(uint8_t));
-    }
-
-    #pragma omp parallel default(shared) private(i, j, pixel)
-    for (i = 1; i < height + 1; ++i) {
-        #pragma omp parallel for schedule(static, channels * width / omp_get_num_threads())
-        for (j = channels; j < channels * (width + 1); ++j) {
-            pixel = GAUSSIAN[2][2] * aux[i - 1][j - channels] +
-                    GAUSSIAN[2][1] * aux[i - 1][j]            +
-                    GAUSSIAN[2][0] * aux[i - 1][j + channels] +
-                    GAUSSIAN[1][2] * aux[i][j - channels]     +
-                    GAUSSIAN[1][1] * aux[i][j]                +
-                    GAUSSIAN[1][0] * aux[i][j + channels]     +
-                    GAUSSIAN[0][2] * aux[i + 1][j - channels] +
-                    GAUSSIAN[0][1] * aux[i + 1][j]            +
-                    GAUSSIAN[0][0] * aux[i + 1][j + channels];
-            pixel = MIN(maxval, pixel);
-            pixel = MAX(0, pixel);
-            image[i][j] = pixel;
-        }
-    }
-
-    #pragma omp parallel for schedule(static, (height + 2) / omp_get_num_threads())
-    for (i = 0; i < height + 2; ++i) {
-        free(aux[i]);
-    }
-    free(aux);
-}
-
 int main(int argc, char *argv[]) {
-
     int width, height;
     uint8_t type, channels, maxval;
     uint8_t **image;
-    char *image_in = argv[1];
-    char *image_out = argv[2];
-    int NUM_FILTERS = atoi(argv[3]);
+    char *image_in;
+    char *image_out;
+    int num_filters;
 
     if (argc < 4) {
-        fprintf(stderr, "Eroare! Numar de argumente invalid! Insereaza: in out num_threads num_blurs\n");
+        fprintf(stderr, "Eroare!\nMod utilizare: ./blur <in.format> "
+                        "<out.format> <num_applied>\n");
         return 0;
+    } else {
+        image_in = argv[1];
+        image_out = argv[2];
+        num_filters = atoi(argv[3]);
+
+        if (num_filters <= 0) {
+            fprintf(stderr, "Eroare!\n<num_applied> trebuie sa fie strict "
+                            "pozitiv\n");
+            return 0;
+        }
     }
 
     // Citirea imaginii de intrare din fișier.
     read_image(image_in, &type, &channels, &width, &height,
                 &maxval, &image);
 
-    for (int i = 0; i < NUM_FILTERS; ++i) {
-        apply_filter_mp(image, height, width, maxval, channels);
+    for (int i = 0; i < num_filters; ++i) {
+        apply_filter(height, width, channels, maxval, image);
     }
 
     // Scrierea în fișier a imaginii.
@@ -79,4 +54,5 @@ int main(int argc, char *argv[]) {
     }
     free(image);
 
+    return 0;
 }

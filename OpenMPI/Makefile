@@ -26,7 +26,7 @@ build: $(SRC)
 
 # Regula de rulare
 run: build
-	mpirun -np $(TASKS) ./$(EXE) $(IN) $(OUT) $(FILTERS)
+	mpirun -np $(NUM_TASKS) ./$(EXE) $(IN) $(OUT) $(FILTERS)
 
 # Curatare director curent
 clean:

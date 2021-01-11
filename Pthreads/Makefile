@@ -26,7 +26,7 @@ build: $(SRC)
 
 # Regula de rulare
 run: build
-	./$(EXE) $(IN) $(OUT) $(FILTERS)
+	./$(EXE) $(IN) $(OUT) $(FILTERS) $(NUM_THREADS)
 
 # Curatare director curent
 clean:
