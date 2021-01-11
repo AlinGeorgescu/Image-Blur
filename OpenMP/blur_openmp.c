@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #include "../utils/blur_utils.h"
 #include "../utils/blur_io.h"

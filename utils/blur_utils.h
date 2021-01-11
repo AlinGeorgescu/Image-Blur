@@ -94,8 +94,7 @@ void apply_filter(int height, int width, uint8_t channels, uint8_t maxval,
     check_container(aux, NULL);
 
     #if defined(_OPENMP)
-    #pragma omp parallel for \
-            schedule(static, (height + 2) / omp_get_num_threads())
+    #pragma omp parallel for
     #endif
     for (i = 0; i < height + 2; ++i) {
         aux[i] = (uint8_t *) malloc(channels * (width + 2) * sizeof(uint8_t));
@@ -105,12 +104,11 @@ void apply_filter(int height, int width, uint8_t channels, uint8_t maxval,
 
     // Aplicarea filtrului propriu-zis (a convoluției)
     #if defined(_OPENMP)
-    #pragma omp parallel default(shared) private(i, j, pixel)
+    #pragma omp parallel for default(shared) private(i, j, pixel)
     #endif
     for (i = 1; i < height + 1; ++i) {
         #if defined(_OPENMP)
-        #pragma omp parallel for \
-                schedule(static, channels * width / omp_get_num_threads())
+        #pragma omp parallel for schedule(static)
         #endif
         for (j = channels; j < channels * (width + 1); ++j) {
             pixel = GAUSSIAN[2][2] * aux[i - 1][j - channels] +
@@ -129,8 +127,7 @@ void apply_filter(int height, int width, uint8_t channels, uint8_t maxval,
     }
 
     #if defined(_OPENMP)
-    #pragma omp parallel for \
-            schedule(static, (height + 2) / omp_get_num_threads())
+    #pragma omp parallel for
     #endif
     for (i = 0; i < height + 2; ++i) {
         free(aux[i]);
