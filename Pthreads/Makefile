@@ -9,7 +9,7 @@
 CC = gcc
 
 # Flaguri compilator
-CFLAGS = -g -Wall -Wextra -Wno-unused-parameter -std=gnu99
+CFLAGS = -Wall -Wextra -std=c99
 
 # Biblioteci externe
 LIBS=-lm -lpthread
