@@ -1,12 +1,9 @@
 # Image blur
 
 ### Echipa:
-* [Georgescu Alin-Andrei](@alin.georgescu), 342 C3
-* [Iuga Florin-Eugen](@florin_eugen.iuga),&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 342 C5
-* [Negru Bogdan-Cristian](@bogdan.negru), 342 C3
-
-### Asistent:
-* Florin-Răzvan Mihalache (Joi 8 - 10)
+* Georgescu Alin
+* Iuga Florin
+* Negru Bogdan
 
 ---
 
@@ -27,8 +24,7 @@ make run IN=fișier_intrare OUT=fișier_ieșire FILTERS=nr_filtre_de_aplicat [NU
 ### Descriere
 
 Procesarea imaginilor reprezintă un proces destul de intensiv computațional,
-deoarece implică operații matematice și înmulțiri de matrice mari. Astfel, am
-ales blurarea Gaussiană drept proiect pentru APP 2020.
+deoarece implică operații matematice și înmulțiri de matrice mari.
 
 Utilitatea filtrului vine în editarea fotografiilor sau a videoclipurilor și se
 observă, mai ales în perioada pandemiei, când mulți dintre noi utilizăm efectul
